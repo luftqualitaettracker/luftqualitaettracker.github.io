@@ -2,7 +2,7 @@ import requests
 import time
 import os
 import csv
-from datetime import datetime, timedelta
+from datetime import datetime
 import glob
 import pandas as pd
 import json
@@ -30,6 +30,18 @@ HEADERS_DW = {
 
 # Städte in Deutschland
 CITIES = ["Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt", "Stuttgart", "Düsseldorf", "Dortmund", "Essen", "Leipzig"]
+CITY_COORDS = {
+    "Berlin": [52.5200, 13.4050],
+    "Hamburg": [53.5511, 9.9937],
+    "Munich": [48.1351, 11.5820],
+    "Cologne": [50.9375, 6.9603],
+    "Frankfurt": [50.1109, 8.6821],
+    "Stuttgart": [48.7758, 9.1829],
+    "Düsseldorf": [51.2277, 6.7735],
+    "Dortmund": [51.5136, 7.4653],
+    "Essen": [51.4556, 7.0116],
+    "Leipzig": [51.3397, 12.3731]
+}
 
 # Luftqualitätsdaten abrufen
 def get_air_quality(city):
@@ -362,11 +374,6 @@ for title, sid in zip(section_titles, section_ids):
     contents_html += f'<li style="margin-bottom:8px;"><a href="#{sid}" style="color:#003366;text-decoration:underline;">{title}</a></li>'
 contents_html += '</ul></nav>'
 
-# Berechne nächste Aktualisierung (alle 6 Stunden)
-update_interval_hours = 6
-next_update_dt = datetime.now() + timedelta(hours=update_interval_hours)
-next_update = next_update_dt.strftime("%Y-%m-%d %H:%M:%S")
-
 # Status-Checks (wie bisher)
 status_checks = []
 try:
@@ -380,7 +387,7 @@ except Exception as e:
 try:
     test_dw = requests.get("https://api.datawrapper.de/v3/charts", headers=HEADERS_DW, timeout=5)
     if test_dw.status_code in [200, 401]:
-        status_checks.append({"name": "Datawrapper API", "status": "OK", "desc": "Datawrapper API erreichbar"})
+        status_checks.append({"name": "Datawrapper API", "status": "OK", "desc": "Chart-API erreichbar"})
     else:
         status_checks.append({"name": "Datawrapper API", "status": "Fehler", "desc": f"Statuscode: {test_dw.status_code}"})
 except Exception as e:
@@ -388,7 +395,6 @@ except Exception as e:
 chart_status = "OK" if len(iframe_blocks) > 0 else "Fehler"
 status_checks.append({"name": "Diagramme", "status": chart_status, "desc": "Diagramme erfolgreich generiert" if chart_status == "OK" else "Keine Diagramme generiert"})
 status_checks.append({"name": "Letztes Update", "status": timestamp, "desc": f"Zeitpunkt der letzten Aktualisierung: {timestamp}"})
-status_checks.append({"name": "Nächste Aktualisierung", "status": next_update, "desc": f"Geplante nächste Aktualisierung: {next_update}"})
 
 # Write status to JSON
 with open("status.json", "w", encoding="utf-8") as f:
@@ -492,6 +498,55 @@ status_page = f"""
 with open("status.html", "w", encoding="utf-8") as f:
     f.write(status_page)
 
+# Interaktive Karte vorbereiten
+map_markers = []
+for entry in data_list:
+    city = entry["city"]
+    coords = CITY_COORDS.get(city)
+    if coords:
+        marker = {
+            "city": city,
+            "lat": coords[0],
+            "lng": coords[1],
+            "aqi": entry["aqi"],
+            "pm25": entry["pm25"],
+            "pm10": entry["pm10"],
+            "co": entry["co"],
+            "no2": entry["no2"],
+            "so2": entry["so2"],
+            "o3": entry["o3"]
+        }
+        map_markers.append(marker)
+map_markers_json = json.dumps(map_markers)
+
+# Interaktive Leaflet-Karte HTML Block
+leaflet_map_html = f'''
+<section id="interactive-map">
+    <h2>Interaktive Karte: Luftqualitätsindex (AQI)</h2>
+    <div id="leaflet-map" style="width:100%;height:500px;"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script>
+    const markers = {map_markers_json};
+    const map = L.map('leaflet-map').setView([51.1634, 10.4477], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {{
+        maxZoom: 18,
+        attribution: '© OpenStreetMap'
+    }}).addTo(map);
+    markers.forEach(m => {{
+        let color = m.aqi < 50 ? 'green' : m.aqi < 100 ? 'orange' : 'red';
+        let marker = L.circleMarker([m.lat, m.lng], {{
+            radius: 12,
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.7
+        }}).addTo(map);
+        marker.bindPopup(`<b>${{m.city}}</b><br>AQI: ${{m.aqi}}<br>PM2.5: ${{m.pm25}}<br>PM10: ${{m.pm10}}<br>CO: ${{m.co}}<br>NO₂: ${{m.no2}}<br>SO₂: ${{m.so2}}<br>O₃: ${{m.o3}}`);
+    }});
+    </script>
+</section>
+'''
+
 # HTML-Seite für die Luftqualitätsdaten
 # Avoid backslashes in f-string expressions by building blocks first
 iframe_html_blocks = []
@@ -501,7 +556,8 @@ for block in iframe_blocks_with_ids:
     block_fixed = re.sub(r'<iframe src="([^"]+)"', r'<iframe class="lazy-iframe" data-src="\1"', block)
     iframe_html_blocks.append(block_fixed)
 iframe_html_blocks_str = ''.join(iframe_html_blocks)
-
+# Interaktive Karte als ersten Block nach Inhaltsverzeichnis
+all_html_blocks_str = leaflet_map_html + iframe_html_blocks_str
 html_content = f"""
 <!DOCTYPE html>
 <html lang="de">
@@ -591,6 +647,13 @@ html_content = f"""
                 height: 300px !important;
             }}
         }}
+        #leaflet-map {{
+            width: 100%;
+            height: 500px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.08);
+        }}
         footer {{
             text-align: center;
             padding: 20px;
@@ -662,11 +725,11 @@ html_content = f"""
 </head>
 <body>
     <h1>Luftqualität in deutschen Großstädten (aktuell)</h1>
-    <p style="text-align:center;">Letztes Update: {timestamp}<br>Nächste Aktualisierung: {next_update}</p>
+    <p style="text-align:center;">Letztes Update: {timestamp}</p>
     <a href="/status.html" class="status-link">Status &rarr;</a>
     {contents_html}
     <div class="main-content">
-    {iframe_html_blocks_str}
+    {all_html_blocks_str}
     </div>
     <footer>
         <p>Quellen: <a href="https://api-ninjas.com/api/airquality" style="color:white;">API Ninjas</a> &amp; <a href="https://www.datawrapper.de/" style="color:white;">Datawrapper</a></p>
@@ -675,7 +738,6 @@ html_content = f"""
 </body>
 </html>
 """
-
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
