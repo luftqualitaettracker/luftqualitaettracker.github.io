@@ -364,7 +364,10 @@ contents_html += '</ul></nav>'
 # Avoid backslashes in f-string expressions by building blocks first
 iframe_html_blocks = []
 for block in iframe_blocks_with_ids:
-    iframe_html_blocks.append(block.replace('<iframe ', '<iframe class="lazy-iframe" data-src='))
+    # Fix: Only replace <iframe ...> with class and data-src, but keep src attribute value
+    import re
+    block_fixed = re.sub(r'<iframe src="([^"]+)"', r'<iframe class="lazy-iframe" data-src="\1"', block)
+    iframe_html_blocks.append(block_fixed)
 iframe_html_blocks_str = ''.join(iframe_html_blocks)
 
 html_content = f"""
