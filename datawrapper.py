@@ -7,6 +7,7 @@ import glob
 import pandas as pd
 import json
 
+
 # Ordner für Datenhistorie
 os.makedirs("data", exist_ok=True)
 
@@ -21,6 +22,8 @@ write_header = not os.path.exists(file_path)
 # API Keys from environment variables
 NINJA_API_KEY = os.getenv("NINJA_API_KEY")
 HEADERS_NINJA = {"X-Api-Key": NINJA_API_KEY}
+
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 DATAWRAPPER_API_TOKEN = os.getenv("DATAWRAPPER_API_TOKEN")
 HEADERS_DW = {
@@ -42,6 +45,26 @@ CITY_COORDS = {
     "Essen": [51.4556, 7.0116],
     "Leipzig": [51.3397, 12.3731]
 }
+
+def get_ai_answer(model, content):
+    response = requests.post(
+        url="https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        },
+        data=json.dumps({
+            "model": model, # Optional
+            "messages": [
+            {
+                "role": "user",
+                "content": content
+            }
+            ]
+        })
+    )
+    return response
+
+
 
 # Luftqualitätsdaten abrufen
 def get_air_quality(city):
@@ -548,10 +571,23 @@ leaflet_map_html = f'''
 '''
 
 # HTML-Seite für die Luftqualitätsdaten
-# Avoid backslashes in f-string expressions by building blocks first
+# AI Summary für Website laden
+try:
+    with open("ai_summary.txt", "r", encoding="utf-8") as f:
+        ai_summary_text = f.read()
+except Exception:
+    ai_summary_text = "(Keine Zusammenfassung verfügbar)"
+
+# AI Summary HTML Block
+ai_summary_html = f'''
+<aside class="ai-summary-block">
+    <h2>AI Zusammenfassung</h2>
+    <div class="ai-summary-text">{ai_summary_text}</div>
+</aside>
+'''
+
 iframe_html_blocks = []
 for block in iframe_blocks_with_ids:
-    # Fix: Only replace <iframe ...> with class and data-src, but keep src attribute value
     import re
     block_fixed = re.sub(r'<iframe src="([^"]+)"', r'<iframe class="lazy-iframe" data-src="\1"', block)
     iframe_html_blocks.append(block_fixed)
@@ -601,30 +637,51 @@ html_content = f"""
             padding: 0 10px;
             z-index: 100;
         }}
-        .toc-nav h2 {{
-            font-size: 1.1em;
-            margin-bottom: 10px;
+        .main-content-wrapper {{
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            max-width: 1200px;
+            margin: 0 auto;
         }}
-        .toc-nav ul {{
-            padding-left: 0;
+        .main-content {{
+            flex: 1;
+            margin-left: 140px;
         }}
-        .toc-nav li {{
-            margin-bottom: 8px;
+        .ai-summary-block {{
+            width: 340px;
+            margin-left: 32px;
+            background: #f8fafc;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.07);
+            padding: 24px 18px;
+            position: sticky;
+            top: 120px;
+            height: fit-content;
         }}
-        .toc-nav a {{
-            color: #003366;
-            text-decoration: underline;
-            font-size: 1em;
+        .ai-summary-block h2 {{
+            color: #0c1754;
+            font-size: 1.2em;
+            margin-top: 0;
         }}
-        .toc-nav a:hover {{
-            color: #0055aa;
+        .ai-summary-text {{
+            color: #333;
+            font-size: 1.05em;
+            line-height: 1.6;
+            white-space: pre-line;
         }}
         @media (max-width: 900px) {{
-            .toc-nav {{
-                position: static;
+            .main-content-wrapper {{
+                flex-direction: column;
+            }}
+            .ai-summary-block {{
                 width: 100%;
-                margin-bottom: 20px;
-                padding: 0;
+                margin-left: 0;
+                margin-top: 24px;
+                position: static;
+            }}
+            .main-content {{
+                margin-left: 0;
             }}
         }}
         section {{
@@ -728,8 +785,11 @@ html_content = f"""
     <p style="text-align:center;">Letztes Update: {timestamp}</p>
     <a href="/status.html" class="status-link">Status &rarr;</a>
     {contents_html}
-    <div class="main-content">
-    {all_html_blocks_str}
+    <div class="main-content-wrapper">
+        <div class="main-content">
+            {all_html_blocks_str}
+        </div>
+        {ai_summary_html}
     </div>
     <footer>
         <p>Quellen: <a href="https://api-ninjas.com/api/airquality" style="color:white;">API Ninjas</a> &amp; <a href="https://www.datawrapper.de/" style="color:white;">Datawrapper</a></p>
@@ -743,3 +803,21 @@ with open("index.html", "w", encoding="utf-8") as f:
 
 print("-------------Fertig-------------")
 print("Website generated successfully!")
+
+# Nach dem Sammeln der Daten, AI Summary generieren
+summary_file = "ai_summary.txt"
+if len(data_list) > 0:
+    # Prompt für die Zusammenfassung
+    cities_str = ", ".join([entry["city"] for entry in data_list])
+    avg_aqi = sum([entry["aqi"] for entry in data_list]) / len(data_list)
+    prompt = f"Fasse die Luftqualitätsdaten für folgende deutsche Großstädte zusammen: {cities_str}. Der durchschnittliche AQI beträgt {avg_aqi:.1f}. Erwähne Besonderheiten, Trends und gib einen kurzen Ausblick."
+    try:
+        ai_resp = get_ai_answer("openrouter/auto", prompt)
+        ai_text = ai_resp.json()["choices"][0]["message"]["content"]
+        with open(summary_file, "w", encoding="utf-8") as f:
+            f.write(ai_text)
+    except Exception as e:
+        print(f"Fehler beim Generieren der AI-Zusammenfassung: {e}")
+        ai_text = "(Fehler beim Generieren der Zusammenfassung)"
+        with open(summary_file, "w", encoding="utf-8") as f:
+            f.write(ai_text)
