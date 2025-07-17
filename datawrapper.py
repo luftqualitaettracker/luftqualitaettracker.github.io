@@ -402,7 +402,7 @@ html_content = f"""
         .toc-nav {{
             position: fixed;
             top: 100px;
-            left: 0;
+            left: 20;
             width: 220px;
             background: none;
             box-shadow: none;
