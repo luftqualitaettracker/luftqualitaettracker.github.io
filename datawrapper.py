@@ -813,7 +813,12 @@ if len(data_list) > 0:
     prompt = f"Fasse die Luftqualitätsdaten für folgende deutsche Großstädte zusammen: {cities_str}. Der durchschnittliche AQI beträgt {avg_aqi:.1f}. Erwähne Besonderheiten, Trends und gib einen kurzen Ausblick."
     try:
         ai_resp = get_ai_answer("openrouter/auto", prompt)
-        ai_text = ai_resp.json()["choices"][0]["message"]["content"]
+        resp_json = ai_resp.json()
+        if "choices" in resp_json and resp_json["choices"]:
+            ai_text = resp_json["choices"][0]["message"]["content"]
+        else:
+            print("OpenRouter Fehler/Antwort:", resp_json)
+            ai_text = "(Fehler beim Generieren der Zusammenfassung)"
         with open(summary_file, "w", encoding="utf-8") as f:
             f.write(ai_text)
     except Exception as e:
