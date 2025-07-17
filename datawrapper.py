@@ -812,7 +812,7 @@ if len(data_list) > 0:
     avg_aqi = sum([entry["aqi"] for entry in data_list]) / len(data_list)
     prompt = f"Fasse die Luftqualitätsdaten für folgende deutsche Großstädte zusammen: {cities_str}. Der durchschnittliche AQI beträgt {avg_aqi:.1f}. Erwähne Besonderheiten, Trends und gib einen kurzen Ausblick."
     try:
-        ai_resp = get_ai_answer("openrouter/auto", prompt)
+        ai_resp = get_ai_answer("google/gemini-2.0-flash-exp:free", prompt)
         resp_json = ai_resp.json()
         if "choices" in resp_json and resp_json["choices"]:
             ai_text = resp_json["choices"][0]["message"]["content"]
