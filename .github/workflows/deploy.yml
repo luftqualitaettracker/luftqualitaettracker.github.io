@@ -45,6 +45,7 @@ jobs:
       env:
         NINJA_API_KEY: ${{ secrets.NINJA_API_KEY }}
         DATAWRAPPER_API_TOKEN: ${{ secrets.DATAWRAPPER_API_TOKEN }}
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       run: python datawrapper.py
       
     - name: Setup Pages
