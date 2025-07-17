@@ -1,8 +1,0 @@
-sudo docker build -t datawrapper .
-
-sudo docker stop datawrapper-container
-sudo docker rm datawrapper-container
-
-sudo docker run -p 80:80 --name datawrapper-container datawrapper
-
-sudo docker run -p 8080:80 --name datawrapper-container datawrapper
