@@ -456,15 +456,15 @@ status_page = f"""
             color: #003366;
         }}
         @keyframes pulse {{
-            0% {
+            0% {{
                 box-shadow: 0 0 0 0 rgba(46,204,64,0.7);
-            }
-            70% {
+            }}
+            70% {{
                 box-shadow: 0 0 0 12px rgba(46,204,64,0);
-            }
-            100% {
+            }}
+            100% {{
                 box-shadow: 0 0 0 0 rgba(46,204,64,0);
-            }
+            }}
         }}
         @media (max-width: 700px) {{
             .container {{
