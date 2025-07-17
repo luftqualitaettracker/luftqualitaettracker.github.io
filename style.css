@@ -1,0 +1,43 @@
+body {
+    background: #232323;
+    color: #eee;
+    font-family: "Fira Mono", "Consolas", "Monaco", monospace;
+}
+
+.terminal {
+    background: #181818;
+    border-radius: 10px;
+    box-shadow: 0 0 20px #000a;
+    width: 600px;
+    max-width: 90vw;
+    margin: 50px auto;
+    padding: 30px 20px;
+}
+
+.prompt {
+    color: #39ff14;
+    font-weight: bold;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.user {
+    color: #6cf;
+}
+
+.dir {
+    color: #f9f;
+}
+
+.cmd {
+    color: #fffd82;
+}
+
+.output {
+    color: #eee;
+    background: none;
+    padding: 0;
+    margin: 0;
+    font-size: 1.1em;
+    white-space: pre;
+}
