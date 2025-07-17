@@ -355,7 +355,7 @@ for i, block in enumerate(iframe_blocks):
     block_with_id = block.replace('<section>', f'<section id="{section_ids[i]}">')
     iframe_blocks_with_ids.append(block_with_id)
 # Table of contents HTML
-contents_html = '<nav style="max-width:900px;margin:30px auto 0 auto;padding:10px 20px;background:white;box-shadow:0 0 10px rgba(0,0,0,0.05);border-radius:6px;">'
+contents_html = '<nav class="toc-nav">'
 contents_html += '<h2 style="margin-top:0;color:#003366;">Inhalt</h2><ul style="list-style:none;padding-left:0;">'
 for title, sid in zip(section_titles, section_ids):
     contents_html += f'<li style="margin-bottom:8px;"><a href="#{sid}" style="color:#003366;text-decoration:underline;">{title}</a></li>'
@@ -399,6 +399,43 @@ html_content = f"""
             color: white;
             margin: 0;
         }}
+        .toc-nav {{
+            position: fixed;
+            top: 100px;
+            left: 0;
+            width: 220px;
+            background: none;
+            box-shadow: none;
+            border-radius: 0;
+            padding: 0 10px;
+            z-index: 100;
+        }}
+        .toc-nav h2 {{
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }}
+        .toc-nav ul {{
+            padding-left: 0;
+        }}
+        .toc-nav li {{
+            margin-bottom: 8px;
+        }}
+        .toc-nav a {{
+            color: #003366;
+            text-decoration: underline;
+            font-size: 1em;
+        }}
+        .toc-nav a:hover {{
+            color: #0055aa;
+        }}
+        @media (max-width: 900px) {{
+            .toc-nav {{
+                position: static;
+                width: 100%;
+                margin-bottom: 20px;
+                padding: 0;
+            }}
+        }}
         section {{
             margin: 30px auto;
             padding: 10px 20px;
@@ -419,12 +456,6 @@ html_content = f"""
                 height: 300px !important;
             }}
         }}
-        nav {{
-            margin-bottom: 20px;
-        }}
-        nav ul li a:hover {{
-            color: #0055aa;
-        }}
         footer {{
             text-align: center;
             padding: 20px;
@@ -438,6 +469,14 @@ html_content = f"""
         }}
         .lazy-iframe.loaded {{
             opacity: 1;
+        }}
+        .main-content {{
+            margin-left: 240px;
+        }}
+        @media (max-width: 900px) {{
+            .main-content {{
+                margin-left: 0;
+            }}
         }}
     </style>
     <script>
@@ -464,7 +503,9 @@ html_content = f"""
     <h1>Luftqualität in deutschen Großstädten (aktuell)</h1>
     <p style="text-align:center;">Letztes Update: {timestamp}</p>
     {contents_html}
+    <div class="main-content">
     {iframe_html_blocks_str}
+    </div>
     <footer>
         <p>Quellen: <a href="https://api-ninjas.com/api/airquality" style="color:white;">API Ninjas</a> &amp; <a href="https://www.datawrapper.de/" style="color:white;">Datawrapper</a></p>
         <p>Kontakt: <a href="mailto:info@example.com" style="color:white;">info@example.com</a></p>
