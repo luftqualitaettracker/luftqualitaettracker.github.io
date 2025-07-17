@@ -367,109 +367,109 @@ for block in iframe_blocks_with_ids:
     iframe_html_blocks.append(block.replace('<iframe ', '<iframe class="lazy-iframe" data-src='))
 iframe_html_blocks_str = ''.join(iframe_html_blocks)
 
-html_content = (
-    '<!DOCTYPE html>'
-    '<html lang="de">'
-    '<head>'
-    '    <meta charset="UTF-8">'
-    '    <title>Luftqualität in deutschen Städten</title>'
-    '    <meta name="description" content="Aktuelle Luftqualitätsdaten und Trends für deutsche Großstädte. Diagramme, Karten und Zeitverläufe.">' 
-    '    <meta name="keywords" content="Luftqualität, AQI, Deutschland, Städte, Feinstaub, NO2, Ozon, Datawrapper, Umwelt, Diagramm, Karte">'
-    '    <meta name="author" content="Automatisch erzeugt mit Python und API Ninjas">'
-    '    <meta property="og:title" content="Luftqualität in deutschen Städten">'
-    '    <meta property="og:description" content="Vergleich und Verlauf der Luftqualität in deutschen Großstädten.">' 
-    '    <meta property="og:type" content="website">'
-    '    <meta property="og:image" content="chart.png">'
-    '    <meta name="viewport" content="width=device-width, initial-scale=1.0">'
-    '    <link rel="icon" href="chart.png">'
-    '    <style>'
-    '        body {{'
-    '            font-family: Arial, sans-serif;'
-    '            margin: 0;'
-    '            padding: 0;'
-    '            background: #f5f5f5;'
-    '        }}'
-    '        h1 {{'
-    '            text-align: center;'
-    '            padding: 20px;'
-    '            background: #0c1754;'
-    '            color: white;'
-    '            margin: 0;'
-    '        }}'
-    '        section {{'
-    '            margin: 30px auto;'
-    '            padding: 10px 20px;'
-    '            max-width: 900px;'
-    '            background: white;'
-    '            box-shadow: 0 0 10px rgba(0,0,0,0.1);'
-    '        }}'
-    '        h2 {{'
-    '            margin-top: 0;'
-    '            color: #003366;'
-    '        }}'
-    '        @media (max-width: 600px) {{'
-    '            section {{'
-    '                max-width: 100%;'
-    '                padding: 5px 2px;'
-    '            }}'
-    '            iframe {{'
-    '                height: 300px !important;'
-    '            }}'
-    '        }}'
-    '        nav {{'
-    '            margin-bottom: 20px;'
-    '        }}'
-    '        nav ul li a:hover {{'
-    '            color: #0055aa;'
-    '        }}'
-    '        footer {{'
-    '            text-align: center;'
-    '            padding: 20px;'
-    '            background: #003366;'
-    '            color: white;'
-    '            margin-top: 40px;'
-    '        }}'
-    '        .lazy-iframe {{'
-    '            opacity: 0;'
-    '            transition: opacity 0.5s;'
-    '        }}'
-    '        .lazy-iframe.loaded {{'
-    '            opacity: 1;'
-    '        }}'
-    '    </style>'
-    '    <script>'
-    '    // Lazy loading for iframes'
-    '    document.addEventListener("DOMContentLoaded", function() {{'
-    '        const iframes = document.querySelectorAll("iframe[data-src]");'
-    '        const observer = new IntersectionObserver((entries, obs) => {{'
-    '            entries.forEach(entry => {{'
-    '                if (entry.isIntersecting) {{'
-    '                    const iframe = entry.target;'
-    '                    iframe.src = iframe.dataset.src;'
-    '                    iframe.classList.add("loaded");'
-    '                    obs.unobserve(iframe);'
-    '                }}'
-    '            }});'
-    '        }}, {{ rootMargin: "100px" }});'
-    '        iframes.forEach(iframe => {{'
-    '            observer.observe(iframe);'
-    '        }});'
-    '    }});'
-    '    </script>'
-    '</head>'
-    '<body>'
-    f'<h1>Luftqualität in deutschen Großstädten (aktuell)</h1>'
-    f'<p style="text-align:center;">Letztes Update: {timestamp}</p>'
-    f'{contents_html}'
-    f'{iframe_html_blocks_str}'
-    '<footer>'
-    '    <p>Quellen: <a href="https://api-ninjas.com/api/airquality" style="color:white;">API Ninjas</a> &amp; <a href="https://www.datawrapper.de/" style="color:white;">Datawrapper</a></p>'
-    '    <p>Kontakt: <a href="mailto:info@example.com" style="color:white;">info@example.com</a></p>'
-    '    <p>&copy; 2025 Luftqualitätsdaten Deutschland</p>'
-    '</footer>'
-    '</body>'
-    '</html>'
-)
+html_content = f"""
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Luftqualität in deutschen Städten</title>
+    <meta name="description" content="Aktuelle Luftqualitätsdaten und Trends für deutsche Großstädte. Diagramme, Karten und Zeitverläufe.">
+    <meta name="keywords" content="Luftqualität, AQI, Deutschland, Städte, Feinstaub, NO2, Ozon, Datawrapper, Umwelt, Diagramm, Karte">
+    <meta name="author" content="Automatisch erzeugt mit Python und API Ninjas">
+    <meta property="og:title" content="Luftqualität in deutschen Städten">
+    <meta property="og:description" content="Vergleich und Verlauf der Luftqualität in deutschen Großstädten.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="chart.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="chart.png">
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }}
+        h1 {{
+            text-align: center;
+            padding: 20px;
+            background: #0c1754;
+            color: white;
+            margin: 0;
+        }}
+        section {{
+            margin: 30px auto;
+            padding: 10px 20px;
+            max-width: 900px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }}
+        h2 {{
+            margin-top: 0;
+            color: #003366;
+        }}
+        @media (max-width: 600px) {{
+            section {{
+                max-width: 100%;
+                padding: 5px 2px;
+            }}
+            iframe {{
+                height: 300px !important;
+            }}
+        }}
+        nav {{
+            margin-bottom: 20px;
+        }}
+        nav ul li a:hover {{
+            color: #0055aa;
+        }}
+        footer {{
+            text-align: center;
+            padding: 20px;
+            background: #003366;
+            color: white;
+            margin-top: 40px;
+        }}
+        .lazy-iframe {{
+            opacity: 0;
+            transition: opacity 0.5s;
+        }}
+        .lazy-iframe.loaded {{
+            opacity: 1;
+        }}
+    </style>
+    <script>
+    // Lazy loading for iframes
+    document.addEventListener('DOMContentLoaded', function() {{
+        const iframes = document.querySelectorAll('iframe[data-src]');
+        const observer = new IntersectionObserver((entries, obs) => {{
+            entries.forEach(entry => {{
+                if (entry.isIntersecting) {{
+                    const iframe = entry.target;
+                    iframe.src = iframe.dataset.src;
+                    iframe.classList.add('loaded');
+                    obs.unobserve(iframe);
+                }}
+            }});
+        }}, {{ rootMargin: '100px' }});
+        iframes.forEach(iframe => {{
+            observer.observe(iframe);
+        }});
+    }});
+    </script>
+</head>
+<body>
+    <h1>Luftqualität in deutschen Großstädten (aktuell)</h1>
+    <p style="text-align:center;">Letztes Update: {timestamp}</p>
+    {contents_html}
+    {iframe_html_blocks_str}
+    <footer>
+        <p>Quellen: <a href="https://api-ninjas.com/api/airquality" style="color:white;">API Ninjas</a> &amp; <a href="https://www.datawrapper.de/" style="color:white;">Datawrapper</a></p>
+        <p>Kontakt: <a href="mailto:info@example.com" style="color:white;">info@example.com</a></p>
+        <p>&copy; 2025 Luftqualitätsdaten Deutschland</p>
+    </footer>
+</body>
+</html>
+"""
 
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
