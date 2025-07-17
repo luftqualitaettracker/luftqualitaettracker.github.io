@@ -395,7 +395,7 @@ for check in status_checks:
         <div style="color:{color};font-weight:600;">{check['status']}</div>
         <div style="font-size:1em;color:#555;margin-top:2px;">{check['desc']}</div>
       </div>
-    </div>")
+    </div>''')
 status_html_blocks_str = ''.join(status_html_blocks)
 
 status_page = f"""
