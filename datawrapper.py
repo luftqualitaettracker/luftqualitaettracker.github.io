@@ -2,7 +2,7 @@ import requests
 import time
 import os
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 import glob
 import pandas as pd
 import json
@@ -362,6 +362,11 @@ for title, sid in zip(section_titles, section_ids):
     contents_html += f'<li style="margin-bottom:8px;"><a href="#{sid}" style="color:#003366;text-decoration:underline;">{title}</a></li>'
 contents_html += '</ul></nav>'
 
+# Berechne nächste Aktualisierung (alle 6 Stunden)
+update_interval_hours = 6
+next_update_dt = datetime.now() + timedelta(hours=update_interval_hours)
+next_update = next_update_dt.strftime("%Y-%m-%d %H:%M:%S")
+
 # Status-Checks (wie bisher)
 status_checks = []
 try:
@@ -375,7 +380,7 @@ except Exception as e:
 try:
     test_dw = requests.get("https://api.datawrapper.de/v3/charts", headers=HEADERS_DW, timeout=5)
     if test_dw.status_code in [200, 401]:
-        status_checks.append({"name": "Datawrapper API", "status": "OK", "desc": "Chart-API erreichbar"})
+        status_checks.append({"name": "Datawrapper API", "status": "OK", "desc": "Datawrapper API erreichbar"})
     else:
         status_checks.append({"name": "Datawrapper API", "status": "Fehler", "desc": f"Statuscode: {test_dw.status_code}"})
 except Exception as e:
@@ -383,6 +388,7 @@ except Exception as e:
 chart_status = "OK" if len(iframe_blocks) > 0 else "Fehler"
 status_checks.append({"name": "Diagramme", "status": chart_status, "desc": "Diagramme erfolgreich generiert" if chart_status == "OK" else "Keine Diagramme generiert"})
 status_checks.append({"name": "Letztes Update", "status": timestamp, "desc": f"Zeitpunkt der letzten Aktualisierung: {timestamp}"})
+status_checks.append({"name": "Nächste Aktualisierung", "status": next_update, "desc": f"Geplante nächste Aktualisierung: {next_update}"})
 
 # Write status to JSON
 with open("status.json", "w", encoding="utf-8") as f:
@@ -656,7 +662,7 @@ html_content = f"""
 </head>
 <body>
     <h1>Luftqualität in deutschen Großstädten (aktuell)</h1>
-    <p style="text-align:center;">Letztes Update: {timestamp}</p>
+    <p style="text-align:center;">Letztes Update: {timestamp}<br>Nächste Aktualisierung: {next_update}</p>
     <a href="/status.html" class="status-link">Status &rarr;</a>
     {contents_html}
     <div class="main-content">
