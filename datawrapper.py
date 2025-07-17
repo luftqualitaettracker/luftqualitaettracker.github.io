@@ -323,21 +323,60 @@ iframe_html = f"""
 iframe_blocks.append(iframe_html)
 
 # html seite schreiben
+# Table of contents generation
+section_titles = [
+    "Luftqualitätsindex (AQI) – Karte",
+    "Luftqualitätsindex (AQI) in deutschen Städten",
+    "Feinstaub PM2.5 Konzentration",
+    "Feinstaub PM10 Konzentration",
+    "Stickstoffdioxid (NO2)",
+    "Ozon (O3)",
+    "Schwefeldioxid (SO2)",
+    "Kohlenmonoxid (CO)",
+    "Luftqualitätskomponenten Vergleich",
+    "Verlauf des AQI über Zeit"
+]
+section_ids = [
+    "aqi-map",
+    "aqi-bar",
+    "pm25",
+    "pm10",
+    "no2",
+    "o3",
+    "so2",
+    "co",
+    "multi",
+    "timeline"
+]
+# Add IDs to each section block
+iframe_blocks_with_ids = []
+for i, block in enumerate(iframe_blocks):
+    # Add id to <section>
+    block_with_id = block.replace('<section>', f'<section id="{section_ids[i]}">')
+    iframe_blocks_with_ids.append(block_with_id)
+# Table of contents HTML
+contents_html = '<nav style="max-width:900px;margin:30px auto 0 auto;padding:10px 20px;background:white;box-shadow:0 0 10px rgba(0,0,0,0.05);border-radius:6px;">'
+contents_html += '<h2 style="margin-top:0;color:#003366;">Inhalt</h2><ul style="list-style:none;padding-left:0;">'
+for title, sid in zip(section_titles, section_ids):
+    contents_html += f'<li style="margin-bottom:8px;"><a href="#{sid}" style="color:#003366;text-decoration:underline;">{title}</a></li>'
+contents_html += '</ul></nav>'
+
+# Escape curly braces for f-string (for JS and CSS)
 html_content = f"""
 <!DOCTYPE html>
-<html lang="de">
+<html lang=\"de\">
 <head>
-    <meta charset="UTF-8">
+    <meta charset=\"UTF-8\">
     <title>Luftqualität in deutschen Städten</title>
-    <meta name="description" content="Aktuelle Luftqualitätsdaten und Trends für deutsche Großstädte. Diagramme, Karten und Zeitverläufe.">
-    <meta name="keywords" content="Luftqualität, AQI, Deutschland, Städte, Feinstaub, NO2, Ozon, Datawrapper, Umwelt, Diagramm, Karte">
-    <meta name="author" content="Automatisch erzeugt mit Python und API Ninjas">
-    <meta property="og:title" content="Luftqualität in deutschen Städten">
-    <meta property="og:description" content="Vergleich und Verlauf der Luftqualität in deutschen Großstädten.">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="chart.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="chart.png">
+    <meta name=\"description\" content=\"Aktuelle Luftqualitätsdaten und Trends für deutsche Großstädte. Diagramme, Karten und Zeitverläufe.\">
+    <meta name=\"keywords\" content=\"Luftqualität, AQI, Deutschland, Städte, Feinstaub, NO2, Ozon, Datawrapper, Umwelt, Diagramm, Karte\">
+    <meta name=\"author\" content=\"Automatisch erzeugt mit Python und API Ninjas\">
+    <meta property=\"og:title\" content=\"Luftqualität in deutschen Städten\">
+    <meta property=\"og:description\" content=\"Vergleich und Verlauf der Luftqualität in deutschen Großstädten.\">
+    <meta property=\"og:type\" content=\"website\">
+    <meta property=\"og:image\" content=\"chart.png\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <link rel=\"icon\" href=\"chart.png\">
     <style>
         body {{
             font-family: Arial, sans-serif;
@@ -348,7 +387,7 @@ html_content = f"""
         h1 {{
             text-align: center;
             padding: 20px;
-            background: #003366;
+            background: #0c1754;
             color: white;
             margin: 0;
         }}
@@ -371,6 +410,12 @@ html_content = f"""
             iframe {{
                 height: 300px !important;
             }}
+        }}
+        nav {{
+            margin-bottom: 20px;
+        }}
+        nav ul li a:hover {{
+            color: #0055aa;
         }}
         footer {{
             text-align: center;
@@ -399,7 +444,7 @@ html_content = f"""
                     iframe.classList.add('loaded');
                     obs.unobserve(iframe);
                 }}
-            });
+            }});
         }}, {{ rootMargin: '100px' }});
         iframes.forEach(iframe => {{
             observer.observe(iframe);
@@ -409,11 +454,12 @@ html_content = f"""
 </head>
 <body>
     <h1>Luftqualität in deutschen Großstädten (aktuell)</h1>
-    <p style="text-align:center;">Letztes Update: {timestamp}</p>
-    {''.join([block.replace('<iframe ', '<iframe class="lazy-iframe" data-src=') for block in iframe_blocks])}
+    <p style=\"text-align:center;\">Letztes Update: {timestamp}</p>
+    {contents_html}
+    {''.join([block.replace('<iframe ', '<iframe class=\"lazy-iframe\" data-src=') for block in iframe_blocks_with_ids])}
     <footer>
-        <p>Quellen: <a href="https://api-ninjas.com/api/airquality" style="color:white;">API Ninjas</a> &amp; <a href="https://www.datawrapper.de/" style="color:white;">Datawrapper</a></p>
-        <p>Kontakt: <a href="mailto:info@example.com" style="color:white;">info@example.com</a></p>
+        <p>Quellen: <a href=\"https://api-ninjas.com/api/airquality\" style=\"color:white;\">API Ninjas</a> &amp; <a href=\"https://www.datawrapper.de/\" style=\"color:white;\">Datawrapper</a></p>
+        <p>Kontakt: <a href=\"mailto:info@example.com\" style=\"color:white;\">info@example.com</a></p>
         <p>&copy; 2025 Luftqualitätsdaten Deutschland</p>
     </footer>
 </body>
