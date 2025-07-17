@@ -629,7 +629,7 @@ html_content = f"""
 <body>
     <h1>Luftqualität in deutschen Großstädten (aktuell)</h1>
     <p style="text-align:center;">Letztes Update: {timestamp}</p>
-    {status_html}
+    {status_page}
     {contents_html}
     <div class="main-content">
     {iframe_html_blocks_str}
