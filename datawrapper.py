@@ -387,15 +387,15 @@ status_checks.append({"name": "Letztes Update", "status": timestamp, "desc": "Ze
 status_html_blocks = []
 for check in status_checks:
     color = "#2ecc40" if check["status"] == "OK" else ("#ffdc00" if check["name"] == "Letztes Update" else "#ff4136")
-    icon = "✔️" if check["status"] == "OK" else ("🕒" if check["name"] == "Letztes Update" else "❌")
-    status_html_blocks.append(f'''<div class="status-item" data-status="{check['status']}">
-      <span class="pulse-orb">{icon}</span>
-      <div>
-        <div style="font-weight:600;font-size:1.15em;color:#003366;">{check['name']}</div>
-        <div style="color:{color};font-weight:600;">{check['status']}</div>
-        <div style="font-size:1em;color:#555;margin-top:2px;">{check['desc']}</div>
-      </div>
-    </div>''')
+    # 40 rectangles per status row
+    rects = ''.join([f'<span class="status-rect" style="background:{color};"></span>' for _ in range(40)])
+    status_html_blocks.append(f'''
+    <div class="status-item">
+        <div style="font-weight:600;font-size:1.1em;color:#003366;margin-bottom:4px;">{check['name']}</div>
+        <div class="status-bar">{rects}</div>
+        <div style="font-size:0.95em;color:#555;margin-top:2px;">{check['desc']}</div>
+    </div>
+    ''')
 status_html_blocks_str = ''.join(status_html_blocks)
 
 status_page = f"""
@@ -433,38 +433,23 @@ status_page = f"""
             flex-direction: column;
             gap: 1.2em;
         }}
-        .status-item span.pulse-orb {{
+        .status-bar {{
+            margin: 6px 0 8px 0;
+            display: flex;
+            gap: 2px;
+        }}
+        .status-rect {{
             display: inline-block;
-            width: 1.5em;
-            height: 1.5em;
-            border-radius: 50%;
-            background: #2ecc40; /* Grün für OK, sonst anpassen */
-            box-shadow: 0 0 0 rgba(46,204,64,0.7);
-            animation: pulse 1.5s infinite;
-            color: white;
-            font-size: 1.2em;
-            line-height: 1.5em;
-            text-align: center;
+            width: 10px;
+            height: 18px;
+            border-radius: 3px;
+            background: #2ecc40;
+            transition: background 0.2s;
         }}
-        .status-item[data-status="Fehler"] span.pulse-orb {{
-            background: #ff4136;
-            box-shadow: 0 0 0 rgba(255,65,54,0.7);
-        }}
-        .status-item[data-status="Letztes Update"] span.pulse-orb {{
-            background: #ffdc00;
-            box-shadow: 0 0 0 rgba(255,220,0,0.7);
-            color: #003366;
-        }}
-        @keyframes pulse {{
-            0% {{
-                box-shadow: 0 0 0 0 rgba(46,204,64,0.7);
-            }}
-            70% {{
-                box-shadow: 0 0 0 12px rgba(46,204,64,0);
-            }}
-            100% {{
-                box-shadow: 0 0 0 0 rgba(46,204,64,0);
-            }}
+        .status-item {{
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
         }}
         @media (max-width: 700px) {{
             .container {{
