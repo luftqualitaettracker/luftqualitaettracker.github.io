@@ -529,7 +529,7 @@ leaflet_map_html = f'''
     <script>
     const markers = {map_markers_json};
     const map = L.map('leaflet-map').setView([51.1634, 10.4477], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {{
+    L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
         maxZoom: 18,
         attribution: '© OpenStreetMap'
     }}).addTo(map);
