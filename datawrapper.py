@@ -5,6 +5,7 @@ import csv
 from datetime import datetime
 import glob
 import pandas as pd
+import json
 
 # Ordner für Datenhistorie
 os.makedirs("data", exist_ok=True)
@@ -383,12 +384,16 @@ chart_status = "OK" if len(iframe_blocks) > 0 else "Fehler"
 status_checks.append({"name": "Diagramme", "status": chart_status, "desc": "Diagramme erfolgreich generiert" if chart_status == "OK" else "Keine Diagramme generiert"})
 status_checks.append({"name": "Letztes Update", "status": timestamp, "desc": f"Zeitpunkt der letzten Aktualisierung: {timestamp}"})
 
+# Write status to JSON
+with open("status.json", "w", encoding="utf-8") as f:
+    json.dump(status_checks, f, ensure_ascii=False, indent=2)
+
 # Statusseite generieren
 status_html_blocks = []
 for check in status_checks:
     color = "#2ecc40" if check["status"] == "OK" else ("#ffdc00" if check["name"] == "Letztes Update" else "#ff4136")
     # 40 rectangles per status row
-    rects = ''.join([f'<span class="status-rect" style="background:{color};"></span>' for _ in range(47)])
+    rects = ''.join([f'<span class="status-rect" style="background:{color};" title="{check["desc"]}"></span>' for _ in range(47)])
     status_html_blocks.append(f'''
     <div class="status-item">
         <div style="font-weight:600;font-size:1.1em;color:#003366;margin-bottom:4px;">{check['name']}</div>
