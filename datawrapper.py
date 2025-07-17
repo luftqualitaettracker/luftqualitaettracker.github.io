@@ -361,6 +361,112 @@ for title, sid in zip(section_titles, section_ids):
     contents_html += f'<li style="margin-bottom:8px;"><a href="#{sid}" style="color:#003366;text-decoration:underline;">{title}</a></li>'
 contents_html += '</ul></nav>'
 
+# Status-Checks (wie bisher)
+status_checks = []
+try:
+    test_resp = requests.get("https://api.api-ninjas.com/v1/airquality?city=Berlin", headers=HEADERS_NINJA, timeout=5)
+    if test_resp.status_code == 200:
+        status_checks.append({"name": "API Ninjas", "status": "OK", "desc": "Luftqualitätsdaten abrufbar"})
+    else:
+        status_checks.append({"name": "API Ninjas", "status": "Fehler", "desc": f"Statuscode: {test_resp.status_code}"})
+except Exception as e:
+    status_checks.append({"name": "API Ninjas", "status": "Fehler", "desc": str(e)})
+try:
+    test_dw = requests.get("https://api.datawrapper.de/v3/charts", headers=HEADERS_DW, timeout=5)
+    if test_dw.status_code in [200, 401]:
+        status_checks.append({"name": "Datawrapper API", "status": "OK", "desc": "Chart-API erreichbar"})
+    else:
+        status_checks.append({"name": "Datawrapper API", "status": "Fehler", "desc": f"Statuscode: {test_dw.status_code}"})
+except Exception as e:
+    status_checks.append({"name": "Datawrapper API", "status": "Fehler", "desc": str(e)})
+chart_status = "OK" if len(iframe_blocks) > 0 else "Fehler"
+status_checks.append({"name": "Diagramme", "status": chart_status, "desc": "Diagramme erfolgreich generiert" if chart_status == "OK" else "Keine Diagramme generiert"})
+status_checks.append({"name": "Letztes Update", "status": timestamp, "desc": "Zeitpunkt der letzten Aktualisierung"})
+
+# Statusseite generieren
+status_html_blocks = []
+for check in status_checks:
+    color = "#2ecc40" if check["status"] == "OK" else ("#ffdc00" if check["name"] == "Letztes Update" else "#ff4136")
+    icon = "✔️" if check["status"] == "OK" else ("🕒" if check["name"] == "Letztes Update" else "❌")
+    status_html_blocks.append(f'''<div class="status-item" style="border-left:6px solid {color};background:#fff;margin-bottom:18px;padding:18px 24px 18px 20px;display:flex;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,0.04);border-radius:12px;">
+      <span style="font-size:2em;margin-right:18px;">{icon}</span>
+      <div>
+        <div style="font-weight:600;font-size:1.15em;color:#003366;">{check['name']}</div>
+        <div style="color:{color};font-weight:600;">{check['status']}</div>
+        <div style="font-size:1em;color:#555;margin-top:2px;">{check['desc']}</div>
+      </div>
+    </div>")
+status_html_blocks_str = ''.join(status_html_blocks)
+
+status_page = f"""
+<!DOCTYPE html>
+<html lang=\"de\">
+<head>
+    <meta charset=\"UTF-8\">
+    <title>Status – Luftqualitätsdaten</title>
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <link rel=\"icon\" href=\"chart.png\">
+    <style>
+        body {{
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(120deg,#f5f7fa 0%,#c3cfe2 100%);
+            margin: 0;
+            min-height: 100vh;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 48px auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+            padding: 36px 32px 32px 32px;
+        }}
+        h1 {{
+            text-align: center;
+            color: #0c1754;
+            font-size: 2.2em;
+            margin-bottom: 12px;
+        }}
+        .status-list {{
+            margin-top: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2em;
+        }}
+        .status-item {{
+            transition: box-shadow 0.2s;
+        }}
+        @media (max-width: 700px) {{
+            .container {{
+                padding: 16px 4px;
+            }}
+        }}
+        .back-link {{
+            display: block;
+            text-align: center;
+            margin-top: 32px;
+            color: #003366;
+            text-decoration: underline;
+            font-size: 1.1em;
+        }}
+    </style>
+</head>
+<body>
+    <div class=\"container\">
+        <h1>Status</h1>
+        <div class=\"status-list\">
+            {status_html_blocks_str}
+        </div>
+        <a href=\"index.html\" class=\"back-link\">Zurück zur Hauptseite</a>
+    </div>
+</body>
+</html>
+"""
+
+with open("status.html", "w", encoding="utf-8") as f:
+    f.write(status_page)
+
+# HTML-Seite für die Luftqualitätsdaten
 # Avoid backslashes in f-string expressions by building blocks first
 iframe_html_blocks = []
 for block in iframe_blocks_with_ids:
@@ -402,7 +508,7 @@ html_content = f"""
         .toc-nav {{
             position: fixed;
             top: 100px;
-            left: 20;
+            left: 0;
             width: 220px;
             background: none;
             box-shadow: none;
@@ -478,6 +584,27 @@ html_content = f"""
                 margin-left: 0;
             }}
         }}
+        .status-section {{
+            max-width: 900px;
+            margin: 30px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            padding: 18px 24px;
+        }}
+        .status-list {{
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+        }}
+        .status-item {{
+            transition: box-shadow 0.2s;
+        }}
+        @media (max-width: 600px) {{
+            .status-section {{
+                padding: 8px 2px;
+            }}
+        }}
     </style>
     <script>
     // Lazy loading for iframes
@@ -502,13 +629,13 @@ html_content = f"""
 <body>
     <h1>Luftqualität in deutschen Großstädten (aktuell)</h1>
     <p style="text-align:center;">Letztes Update: {timestamp}</p>
+    {status_html}
     {contents_html}
     <div class="main-content">
     {iframe_html_blocks_str}
     </div>
     <footer>
         <p>Quellen: <a href="https://api-ninjas.com/api/airquality" style="color:white;">API Ninjas</a> &amp; <a href="https://www.datawrapper.de/" style="color:white;">Datawrapper</a></p>
-        <p>Kontakt: <a href="mailto:info@example.com" style="color:white;">info@example.com</a></p>
         <p>&copy; 2025 Luftqualitätsdaten Deutschland</p>
     </footer>
 </body>
