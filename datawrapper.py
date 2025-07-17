@@ -381,14 +381,14 @@ except Exception as e:
     status_checks.append({"name": "Datawrapper API", "status": "Fehler", "desc": str(e)})
 chart_status = "OK" if len(iframe_blocks) > 0 else "Fehler"
 status_checks.append({"name": "Diagramme", "status": chart_status, "desc": "Diagramme erfolgreich generiert" if chart_status == "OK" else "Keine Diagramme generiert"})
-status_checks.append({"name": "Letztes Update", "status": timestamp, "desc": "Zeitpunkt der letzten Aktualisierung"})
+status_checks.append({"name": "Letztes Update", "status": timestamp, "desc": f"Zeitpunkt der letzten Aktualisierung: {timestamp}"})
 
 # Statusseite generieren
 status_html_blocks = []
 for check in status_checks:
     color = "#2ecc40" if check["status"] == "OK" else ("#ffdc00" if check["name"] == "Letztes Update" else "#ff4136")
     # 40 rectangles per status row
-    rects = ''.join([f'<span class="status-rect" style="background:{color};"></span>' for _ in range(40)])
+    rects = ''.join([f'<span class="status-rect" style="background:{color};"></span>' for _ in range(47)])
     status_html_blocks.append(f'''
     <div class="status-item">
         <div style="font-weight:600;font-size:1.1em;color:#003366;margin-bottom:4px;">{check['name']}</div>
@@ -595,7 +595,7 @@ html_content = f"""
             opacity: 1;
         }}
         .main-content {{
-            margin-left: 240px;
+            margin-left: 140px;
         }}
         @media (max-width: 900px) {{
             .main-content {{
