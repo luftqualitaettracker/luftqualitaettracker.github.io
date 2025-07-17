@@ -388,8 +388,8 @@ status_html_blocks = []
 for check in status_checks:
     color = "#2ecc40" if check["status"] == "OK" else ("#ffdc00" if check["name"] == "Letztes Update" else "#ff4136")
     icon = "✔️" if check["status"] == "OK" else ("🕒" if check["name"] == "Letztes Update" else "❌")
-    status_html_blocks.append(f'''<div class="status-item" style="border-left:6px solid {color};background:#fff;margin-bottom:18px;padding:18px 24px 18px 20px;display:flex;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,0.04);border-radius:12px;">
-      <span style="font-size:2em;margin-right:18px;">{icon}</span>
+    status_html_blocks.append(f'''<div class="status-item" data-status="{check['status']}">
+      <span class="pulse-orb">{icon}</span>
       <div>
         <div style="font-weight:600;font-size:1.15em;color:#003366;">{check['name']}</div>
         <div style="color:{color};font-weight:600;">{check['status']}</div>
@@ -433,8 +433,38 @@ status_page = f"""
             flex-direction: column;
             gap: 1.2em;
         }}
-        .status-item {{
-            transition: box-shadow 0.2s;
+        .status-item span.pulse-orb {{
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            border-radius: 50%;
+            background: #2ecc40; /* Grün für OK, sonst anpassen */
+            box-shadow: 0 0 0 rgba(46,204,64,0.7);
+            animation: pulse 1.5s infinite;
+            color: white;
+            font-size: 1.2em;
+            line-height: 1.5em;
+            text-align: center;
+        }}
+        .status-item[data-status="Fehler"] span.pulse-orb {{
+            background: #ff4136;
+            box-shadow: 0 0 0 rgba(255,65,54,0.7);
+        }}
+        .status-item[data-status="Letztes Update"] span.pulse-orb {{
+            background: #ffdc00;
+            box-shadow: 0 0 0 rgba(255,220,0,0.7);
+            color: #003366;
+        }}
+        @keyframes pulse {{
+            0% {
+                box-shadow: 0 0 0 0 rgba(46,204,64,0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 12px rgba(46,204,64,0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(46,204,64,0);
+            }
         }}
         @media (max-width: 700px) {{
             .container {{
@@ -504,11 +534,14 @@ html_content = f"""
             background: #0c1754;
             color: white;
             margin: 0;
+            position: sticky;
+            top: 0;
+            z-index: 101;
         }}
         .toc-nav {{
             position: fixed;
             top: 100px;
-            left: 0;
+            left: 200px;
             width: 220px;
             background: none;
             box-shadow: none;
@@ -597,13 +630,18 @@ html_content = f"""
             flex-direction: column;
             gap: 0.5em;
         }}
-        .status-item {{
-            transition: box-shadow 0.2s;
-        }}
         @media (max-width: 600px) {{
             .status-section {{
                 padding: 8px 2px;
             }}
+        }}
+        .status-link {{
+            display: block;
+            text-align: center;
+            margin: 18px auto 0 auto;
+            color: #003366;
+            text-decoration: underline;
+            font-size: 1.1em;
         }}
     </style>
     <script>
@@ -629,7 +667,7 @@ html_content = f"""
 <body>
     <h1>Luftqualität in deutschen Großstädten (aktuell)</h1>
     <p style="text-align:center;">Letztes Update: {timestamp}</p>
-    {status_page}
+    <a href="/status.html" class="status-link">Status &rarr;</a>
     {contents_html}
     <div class="main-content">
     {iframe_html_blocks_str}
